@@ -1,8 +1,12 @@
 #!/bin/usr/env ruby
 
+require 'rubygems'
+require 'json'
+
+
 def help
     puts "Usage:"
-    puts "    bww command device options"
+    puts "    bww command device option"
 
     puts "\nCommands:"
     puts "    build\tBuild a unsigned package"
@@ -21,10 +25,41 @@ def help
     puts "    debug\tEnables Remote Web Inspector"
 end
 
+def parse_config
+    config_location = File.join(Dir.pwd, "build.json")
+
+    if File.exists?(config_location)
+        return JSON.parse File.read(config_location)
+    else
+        abort "Couldn't find the build.conf configuration file in your current directory"
+    end
+end
+
+def parse_params(command, device, option)
+    case command
+        when "build"
+            config = parse_config()
+        when "sign"
+            config = parse_config()
+        when "deploy"
+            config = parse_config()
+        when "dist"
+            config = parse_config()
+        when "run"
+            config = parse_config()
+        when "clean"
+            #
+        else
+            help()
+    end
+
+    puts Dir.pwd
+end
+
 if __FILE__ == $0
     if ARGV[0].nil?
        help() 
     else
-        opt_parser.parse ARGV
+        parse_params ARGV[0], ARGV[1], ARGV[2]
     end
 end
