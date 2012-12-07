@@ -120,6 +120,7 @@ def sign(device, config)
         signer = File.join(sdk["location"], "bbwp/blackberry-tablet-sdk/bin/blackberry-signer")
     elsif device == "bb10"
         signer = File.join(sdk["location"], "dependencies/tools/bin/blackberry-signer")
+        device = "device/bb10"
     end
 
     puts "Signing application".bold
@@ -145,7 +146,7 @@ def run(device, config)
     elsif device == "playbook"
         runner = "'#{File.join(sdk["location"], "bbwp/blackberry-tablet-sdk/bin/blackberry-deploy")}' -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
     elsif device == "bb10"
-        runner = "'#{File.join(sdk["location"], "dependencies/tools/bin/blackberry-deploy")}' -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
+        runner = "'#{File.join(sdk["location"], "dependencies/tools/bin/blackberry-deploy")}' -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/device/#{device}.bar"
     end
 
     puts "Sending application to device".bold
