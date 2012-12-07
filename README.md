@@ -1,4 +1,4 @@
-# build-webworks
+# bww
 
 Script to easily build your awesome BlackBerry WebWorks applications.
 
