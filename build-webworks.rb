@@ -2,7 +2,12 @@
 
 require 'rubygems'
 require 'json'
+require 'fileutils'
+require 'term/ansicolor'
 
+class String
+    include Term::ANSIColor
+end
 
 def help
     puts "Usage:"
@@ -35,31 +40,88 @@ def parse_config
     end
 end
 
-def parse_params(command, device, option)
+def device_arg_exists?(device)
+    unless device == "smartphone" || device == "playbook" || device == "bb10"
+        abort "You haven't specified the desired device to target the build."
+    end
+end
+
+def clean
+    FileUtils.rm_r File.join(Dir.pwd, "build/"), :force => true
+end
+
+def build_zip(device)
+    Dir.mkdir File.join(Dir.pwd, "build/")
+    exec "zip -r build/#{device}.zip * -x build/ build.json"
+end
+
+def check_build
+    id_file = File.join(Dir.pwd, ".buildid")
+    build_id = 1
+
+    if File.exists? id_file
+        current_id = File.read(id_file)
+
+        File.open(id_file, "w+") do |file|
+            #puts file.inspect
+            build_id = Integer(current_id) + 1
+            file.write build_id.to_s
+        end
+    else
+        File.open(id_file, "w+") do |file|
+            file.write build_id
+        end
+    end
+
+    return build_id
+end
+
+def build(device, option, config)
+    sdk = config[device]["sdk"]
+    build_id = 1
+
+    puts "Generating archive".bold
+    clean()
+    build_zip device
+
+    puts "\nCompiling BAR".bold
+    build_id = check_build()
+    exec "#{File.join(sdk["location"], "bbwp")} build/#{device}.zip -buildId #{build_id} -o build/"
+end
+
+def parse_params(command, device, option, config)
     case command
         when "build"
-            config = parse_config()
+            build device, option, config
         when "sign"
-            config = parse_config()
         when "deploy"
-            config = parse_config()
         when "dist"
-            config = parse_config()
         when "run"
-            config = parse_config()
         when "clean"
-            #
+            clean()
+            puts "Cleaned the mess."
         else
             help()
     end
-
-    puts Dir.pwd
 end
 
 if __FILE__ == $0
     if ARGV[0].nil?
        help() 
     else
-        parse_params ARGV[0], ARGV[1], ARGV[2]
+        command = ARGV[0]
+        device = ARGV[1]
+        option = ARGV[2]
+
+        if command == "clean"
+            parse_params command, nil, nil, nil
+        else
+            config = parse_config()
+            unless device == "smartphone" || device == "playbook" || device == "bb10"
+                abort "You haven't specified the desired device to target the build."
+            end
+
+            parse_params command, device, option, config
+        end
     end
 end
