@@ -36,13 +36,13 @@ def parse_config
     if File.exists?(config_location)
         return JSON.parse File.read(config_location)
     else
-        abort "Couldn't find the build.conf configuration file in your current directory"
+        abort "Couldn't find the build.conf configuration file in your current directory".red
     end
 end
 
 def device_arg_exists?(device)
     unless device == "smartphone" || device == "playbook" || device == "bb10"
-        abort "You haven't specified the desired device to target the build."
+        abort "You haven't specified the desired device to target the build.".red
     end
 end
 
@@ -122,7 +122,7 @@ if __FILE__ == $0
         else
             config = parse_config()
             unless device == "smartphone" || device == "playbook" || device == "bb10"
-                abort "You haven't specified the desired device to target the build."
+                abort "You haven't specified the desired device to target the build.".red
             end
 
             parse_params command, device, option, config
