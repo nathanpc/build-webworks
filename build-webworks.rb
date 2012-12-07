@@ -82,7 +82,7 @@ def generate_zip(device)
     puts "Archive generated".green.bold
 end
 
-def build(device, option, config)
+def build(device, option, config, sign = false)
     sdk = config[device]["sdk"]
     bbwp = bbwp = File.join(sdk["location"], "bbwp")
     build_id = 1
@@ -98,22 +98,28 @@ def build(device, option, config)
 
     puts "Compiling application".bold
     build_id = check_build()
-    unless system "'#{bbwp}' build/#{device}.zip -buildId #{build_id} -o build/ #{debug}"
-        abort "An error ocurried while trying to compile the BAR".red.bold
+    if sign
+        unless system "'#{bbwp}' build/#{device}.zip -g #{sdk["sign_password"]} -buildId #{build_id} -o build/ #{debug}"
+            abort "An error ocurried while trying to compile the BAR".red.bold
+        end
+    else
+        unless system "'#{bbwp}' build/#{device}.zip -o build/ #{debug}"
+            abort "An error ocurried while trying to compile the BAR".red.bold
+        end
     end
     puts "Application compiled".green.bold
 end
 
-def sign(device)
+def sign(device, config)
     sdk = config[device]["sdk"]
     signer = ""
 
     if device == "smartphone"
-        abort "Still not implemented.".red.bold  # TODO: Find a way to *only sign* smartphone apps, not full bbwp -g
+        abort "Still not implemented. Use the dist command to do this.".red.bold  # TODO: Find a way to *only sign* smartphone apps, not full bbwp -g
     elsif device == "playbook"
         signer = File.join(sdk["location"], "bbwp/blackberry-tablet-sdk/bin/blackberry-signer")
     elsif device == "bb10"
-        signer = File.join(sdk["location"], "bbwp/dependencies/tools/bin/blackberry-signer")
+        signer = File.join(sdk["location"], "dependencies/tools/bin/blackberry-signer")
     end
 
     puts "Signing application".bold
@@ -124,7 +130,7 @@ def sign(device)
     puts "Application signed".green.bold
 end
 
-def run(device)
+def run(device, config)
     sdk = config[device]["sdk"]
     runner = ""
 
@@ -139,7 +145,7 @@ def run(device)
     elsif device == "playbook"
         runner = "#{File.join(sdk["location"], "bbwp/blackberry-tablet-sdk/bin/blackberry-deploy")} -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
     elsif device == "bb10"
-        runner = "#{File.join(sdk["location"], "bbwp/dependencies/tools/bin/blackberry-deploy")} -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
+        runner = "#{File.join(sdk["location"], "dependencies/tools/bin/blackberry-deploy")} -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
     end
 
     puts "Sending application to device".bold
@@ -158,26 +164,22 @@ def parse_params(command, device, option, config)
             build device, option, config
         when "sign"
             # Just sign
-            sign device
+            sign device, config
         when "send"
             # Just send to device
-            run device
+            run device, config
         when "dist"
             # Do all for distribution
             generate_zip device
             print "\n"
-            build device, option, config
-            print "\n"
-            sign device
+            build device, option, config, true
         when "run"
             # Do all and run
             generate_zip device
             print "\n"
-            build device, option, config
+            build device, option, config, true
             print "\n"
-            sign device
-            print "\n"
-            run device
+            run device, config
         when "clean"
             # Clean the mess
             clean()
