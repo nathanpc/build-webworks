@@ -83,11 +83,40 @@ end
 
 def build(device, option, config)
     sdk = config[device]["sdk"]
+    bbwp = bbwp = File.join(sdk["location"], "bbwp")
     build_id = 1
+    debug = ""
 
-    puts "Compiling BAR".bold
+    if device == "playbook"
+        bbwp = File.join(sdk["location"], "bbwp/bbwp")
+    end
+
+    if config == "debug"
+        debug = "-d"
+    end
+
+    puts "Compiling application".bold
     build_id = check_build()
-    unless system "#{File.join(sdk["location"], "bbwp")} build/#{device}.zip -buildId #{build_id} -o build/"
+    unless system "'#{bbwp}' build/#{device}.zip -buildId #{build_id} -o build/ #{debug}"
+        abort "An error ocurried while trying to compile the BAR".red.bold
+    end
+end
+
+def sign(device)
+    sdk = config[device]["sdk"]
+    signer = ""
+
+    if device == "smartphone"
+        abort "Still not implemented.".red.bold  # TODO: Find a way to *only sign* smartphone apps, not full bbwp -g
+    elsif device == "playbook"
+        signer = File.join(sdk["location"], "bbwp/blackberry-tablet-sdk/bin/blackberry-signer")
+    elsif device == "bb10"
+        signer = File.join(sdk["location"], "bbwp/dependencies/tools/bin/blackberry-signer")
+    end
+
+    puts "Signing application".bold
+    build_id = check_build()
+    unless system "'#{signer}' -storepass #{sdk["sign_password"]} build/#{device}.bar"
         abort "An error ocurried while trying to compile the BAR".red.bold
     end
 end
@@ -95,16 +124,27 @@ end
 def parse_params(command, device, option, config)
     case command
         when "build"
+            # Just build
             generate_zip device
             build device, option, config
         when "sign"
+            # Just sign
+            sign device
         when "deploy"
+            # Just send to device
         when "dist"
+            # Do all for distribution
+            generate_zip device
+            build device, option, config
+            sign device
         when "run"
+            # Do all and run
         when "clean"
+            # Clean the mess
             clean()
             puts "Cleaned the mess."
         else
+            # No need to explain
             help()
     end
 end
