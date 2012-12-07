@@ -138,14 +138,14 @@ def run(device, config)
         password = config[device]["password"]
 
         if password != ""
-            runner = "#{File.join(sdk["location"], "bin/javaloader")} -w#{password} load build/#{device}.cod"
+            runner = "'#{File.join(sdk["location"], "bin/javaloader")}' -w#{password} load build/#{device}.cod"
         else
-            runner = "#{File.join(sdk["location"], "bin/javaloader")} load build/#{device}.cod"
+            runner = "'#{File.join(sdk["location"], "bin/javaloader")}' load build/#{device}.cod"
         end
     elsif device == "playbook"
-        runner = "#{File.join(sdk["location"], "bbwp/blackberry-tablet-sdk/bin/blackberry-deploy")} -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
+        runner = "'#{File.join(sdk["location"], "bbwp/blackberry-tablet-sdk/bin/blackberry-deploy")}' -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
     elsif device == "bb10"
-        runner = "#{File.join(sdk["location"], "dependencies/tools/bin/blackberry-deploy")} -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
+        runner = "'#{File.join(sdk["location"], "dependencies/tools/bin/blackberry-deploy")}' -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
     end
 
     puts "Sending application to device".bold
