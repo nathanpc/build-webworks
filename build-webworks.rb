@@ -16,7 +16,7 @@ def help
     puts "\nCommands:"
     puts "    build\tBuild a unsigned package"
     puts "    sign\tSign the packages in the current directory"
-    puts "    deploy\tDeploy your application to the device"
+    puts "    send\tSend your application to the device"
     puts "    dist\tBuild and sign your application for distribution"
     puts "    run\t\tBuild, sign, and deploy your application to the device"
     puts "    clean\tRemove all the files created this script"
@@ -79,6 +79,7 @@ def generate_zip(device)
     unless system "zip -r build/#{device}.zip * -x build/ build.json"
         abort "An error ocurried while trying to generate the archive".red.bold
     end
+    puts "Archive generated".green.bold
 end
 
 def build(device, option, config)
@@ -100,6 +101,7 @@ def build(device, option, config)
     unless system "'#{bbwp}' build/#{device}.zip -buildId #{build_id} -o build/ #{debug}"
         abort "An error ocurried while trying to compile the BAR".red.bold
     end
+    puts "Application compiled".green.bold
 end
 
 def sign(device)
@@ -119,6 +121,32 @@ def sign(device)
     unless system "'#{signer}' -storepass #{sdk["sign_password"]} build/#{device}.bar"
         abort "An error ocurried while trying to compile the BAR".red.bold
     end
+    puts "Application signed".green.bold
+end
+
+def run(device)
+    sdk = config[device]["sdk"]
+    runner = ""
+
+    if device ==  "smartphone"
+        password = config[device]["password"]
+
+        if password != ""
+            runner = "#{File.join(sdk["location"], "bin/javaloader")} -w#{password} load build/#{device}.cod"
+        else
+            runner = "#{File.join(sdk["location"], "bin/javaloader")} load build/#{device}.cod"
+        end
+    elsif device == "playbook"
+        runner = "#{File.join(sdk["location"], "bbwp/blackberry-tablet-sdk/bin/blackberry-deploy")} -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
+    elsif device == "bb10"
+        runner = "#{File.join(sdk["location"], "bbwp/dependencies/tools/bin/blackberry-deploy")} -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
+    end
+
+    puts "Sending application to device".bold
+    unless system runner
+        abort "An error ocurried while trying to compile the BAR".red.bold
+    end
+    puts "Application sent".green.bold
 end
 
 def parse_params(command, device, option, config)
@@ -126,19 +154,30 @@ def parse_params(command, device, option, config)
         when "build"
             # Just build
             generate_zip device
+            print "\n"
             build device, option, config
         when "sign"
             # Just sign
             sign device
-        when "deploy"
+        when "send"
             # Just send to device
+            run device
         when "dist"
             # Do all for distribution
             generate_zip device
+            print "\n"
             build device, option, config
+            print "\n"
             sign device
         when "run"
             # Do all and run
+            generate_zip device
+            print "\n"
+            build device, option, config
+            print "\n"
+            sign device
+            print "\n"
+            run device
         when "clean"
             # Clean the mess
             clean()
@@ -166,6 +205,8 @@ if __FILE__ == $0
             end
 
             parse_params command, device, option, config
+
+            puts "\nSuccess!".green.bold
         end
     end
 end
