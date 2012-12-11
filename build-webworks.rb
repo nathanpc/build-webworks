@@ -11,7 +11,7 @@ end
 
 def help
     puts "Usage:"
-    puts "    bww command device option"
+    puts "    bww command device [option]"
 
     puts "\nCommands:"
     puts "    build\tBuild a unsigned package"
@@ -99,8 +99,14 @@ def build(device, option, config, sign = false)
     puts "Compiling application".bold
     build_id = check_build()
     if sign
-        unless system "'#{bbwp}' build/#{device}.zip -g #{sdk["sign_password"]} -buildId #{build_id} -o build/ #{debug}"
-            abort "An error ocurried while trying to compile the BAR".red.bold
+        if device == "smartphone"
+            unless system "'#{bbwp}' build/#{device}.zip -g #{sdk["sign_password"]} -o build/ #{debug}"
+                abort "An error ocurried while trying to compile the COD".red.bold
+            end
+        else
+            unless system "'#{bbwp}' build/#{device}.zip -g #{sdk["sign_password"]} -buildId #{build_id} -o build/ #{debug}"
+                abort "An error ocurried while trying to compile the BAR".red.bold
+            end
         end
     else
         unless system "'#{bbwp}' build/#{device}.zip -o build/ #{debug}"
@@ -139,9 +145,9 @@ def run(device, config)
         password = config[device]["password"]
 
         if password != ""
-            runner = "'#{File.join(sdk["location"], "bin/javaloader")}' -w#{password} load build/#{device}.cod"
+            runner = "'#{File.join(sdk["location"], "bin/javaloader")}' -w#{password} load build/StandardInstall/#{device}.cod"
         else
-            runner = "'#{File.join(sdk["location"], "bin/javaloader")}' load build/#{device}.cod"
+            runner = "'#{File.join(sdk["location"], "bin/javaloader")}' load build/StandardInstall/#{device}.cod"
         end
     elsif device == "playbook"
         runner = "'#{File.join(sdk["location"], "bbwp/blackberry-tablet-sdk/bin/blackberry-deploy")}' -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{device}.bar"
