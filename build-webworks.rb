@@ -151,7 +151,7 @@ def run(device, config, project_name)
             runner = "'#{File.join(sdk["location"], "bin/javaloader")}' load build/StandardInstall/#{project_name}#{device}.cod"
         end
     elsif device == "playbook"
-        runner = "'#{File.join(sdk["location"], "bbwp/blackberry-tablet-sdk/bin/blackberry-deploy")}' -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build#{project_name}/#{device}.bar"
+        runner = "'#{File.join(sdk["location"], "bbwp/blackberry-tablet-sdk/bin/blackberry-deploy")}' -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/#{project_name}#{device}.bar"
     elsif device == "bb10"
         runner = "'#{File.join(sdk["location"], "dependencies/tools/bin/blackberry-deploy")}' -installApp -password #{config[device]["password"]} -device #{config[device]["ip"]} -package build/device/#{project_name}#{device}.bar"
     end
