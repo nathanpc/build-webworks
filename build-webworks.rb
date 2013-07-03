@@ -93,7 +93,7 @@ def build(device, option, config, sign, project_name)
 	end
 
 	if option == "debug"
-		puts "Debug mode enabled".bold
+		puts "Debug mode enabled".yellow.bold
 		debug = "-d"
 	end
 
